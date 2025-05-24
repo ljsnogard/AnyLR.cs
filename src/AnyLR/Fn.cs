@@ -1,10 +1,20 @@
 namespace NsAnyLR
 {
+    /// <summary>
+    /// Mapping object of type T to type U
+    /// </summary>
+    /// <typeparam name="T">The input type of the mapping.</typeparam>
+    /// <typeparam name="U">The output type of the mapping.</typeparam>
     public interface IMap<in T, out U>
     {
         public U Map(T t);
     }
 
+    /// <summary>
+    /// The wrapper around <typeparamref name="System.Func"/> 
+    /// </summary>
+    /// <typeparam name="T">The input type of the mapping</typeparam>
+    /// <typeparam name="U">The output type of the mapping</typeparam>
     public readonly struct ValFnMap<T, U> : IMap<T, U>
     {
         private readonly System.Func<T, U> mapFn_;

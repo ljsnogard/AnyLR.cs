@@ -32,6 +32,11 @@ namespace NsAnyLR
             => new BuildLeft<E>(err);
     }
 
+    /// <summary>
+    /// Struct storing instance of either left type or right type.
+    /// </summary>
+    /// <typeparam name="L">The left-armed type.</typeparam>
+    /// <typeparam name="R">The right-armed type.</typeparam>
     public readonly struct Either<L, R> : IAnyLeftOrRight<L, R>
     {
         private readonly bool isLeft_;
