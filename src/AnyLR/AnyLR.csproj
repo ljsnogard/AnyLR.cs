@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>AnyLR</PackageId>
+    <Version>0.1.0</Version>
+    <PackageTags>Discriminated union</PackageTags>
+    <Description>This libraray provides discriminated union implementaions list Option, Result, Either</Description>
+    <RepositoryUrl>https://github.com/ljsnogard/AnyLR.cs</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Authors>lino</Authors>
+  </PropertyGroup>
+
+</Project>
