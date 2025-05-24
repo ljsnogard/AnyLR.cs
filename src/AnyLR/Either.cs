@@ -37,7 +37,7 @@ namespace NsAnyLR
     /// </summary>
     /// <typeparam name="L">The left-armed type.</typeparam>
     /// <typeparam name="R">The right-armed type.</typeparam>
-    public readonly struct Either<L, R> : IAnyLeftOrRight<L, R>
+    public readonly struct Either<L, R> : IMaybe<L, R>
     {
         private readonly bool isLeft_;
         private readonly L vl_;
@@ -49,6 +49,8 @@ namespace NsAnyLR
             this.vl_ = vl;
             this.vr_ = vr;
         }
+
+        #region Factories
 
         public static Either<L, R> Left(L val)
             => new Either<L, R>(true, val, default);
@@ -62,9 +64,19 @@ namespace NsAnyLR
         public static implicit operator Either<L, R>(Either.BuildRight<R> buildRight)
             => Either<L, R>.Right(buildRight.Right);
 
+        #endregion
+
+        #region Fundamental methods
+
+        public bool IsLeft()
+            => this.isLeft_;
+
+        public bool IsRight()
+            => !this.isLeft_;
+
         public bool TryLeft([NotNullWhen(true)] out L leftVal, [NotNullWhen(false)] out R rightVal)
         {
-            if (this.isLeft_)
+            if (this.IsLeft())
             {
                 leftVal = this.vl_;
                 rightVal = default;
@@ -80,49 +92,39 @@ namespace NsAnyLR
 
         public bool TryRight([NotNullWhen(true)] out R rightVal, [NotNullWhen(false)] out L leftVal)
         {
-            if (this.isLeft_)
-            {
-                leftVal = this.vl_;
-                rightVal = default;
-                return false;
-            }
-            else
+            if (this.IsRight())
             {
                 leftVal = default;
                 rightVal = this.vr_;
                 return true;
             }
-        }
-
-        public Either<U, R> MapLeft<M, U>(in M map)
-            where M : struct, IMap<L, U>
-        {
-            if (this.TryLeft(out var leftVal, out var rightVal))
-                return new(true, map.Map(leftVal), default);
             else
-                return new(false, default, rightVal);
+            {
+                leftVal = this.vl_;
+                rightVal = default;
+                return false;
+            }
         }
 
-        public Either<L, U> MapRight<M, U>(in M map)
-            where M : struct, IMap<R, U>
+        #endregion
+
+        #region Convert to Result and Option
+
+        public Result<L, R> TryLeft()
         {
-            if (this.TryRight(out var rightVal, out var leftVal))
-                return new Either<L, U>(false, default, map.Map(rightVal));
+            if (this.IsLeft())
+                return Result.Ok(this.vl_);
             else
-                return new Either<L, U>(true, leftVal, default);
+                return Result.Err(this.vr_);
         }
 
-        public bool IsLeft([NotNullWhen(true)] out L val)
-            => AnyLeftOrRightExt.IsLeft<Either<L, R>, L, R>(in this, out val);
-
-        public bool IsRight([NotNullWhen(true)] out R val)
-            => AnyLeftOrRightExt.IsRight<Either<L, R>, L, R>(in this, out val);
-
-        public bool IsLeft()
-            => this.IsLeft(out _);
-
-        public bool IsRight()
-            => this.IsRight(out _);
+        public Result<R, L> TryRight()
+        {
+            if (this.IsRight())
+                return Result.Ok(this.vr_);
+            else
+                return Result.Err(this.vl_);
+        }
 
         public Option<L> AsLeft()
         {
@@ -139,6 +141,56 @@ namespace NsAnyLR
             else
                 return Option.None();
         }
+
+        #endregion
+
+        #region Monadic
+
+        public Either<U, R> MapLeft<M, U>(in M mapLeft)
+            where M : struct, IMap<L, U>
+        {
+            if (this.TryLeft(out var leftVal, out var rightVal))
+                return new(true, mapLeft.Map(leftVal), default);
+            else
+                return new(false, default, rightVal);
+        }
+
+        public Either<L, U> MapRight<M, U>(in M mapRight)
+            where M : struct, IMap<R, U>
+        {
+            if (this.TryRight(out var rightVal, out var leftVal))
+                return new Either<L, U>(false, default, mapRight.Map(rightVal));
+            else
+                return new Either<L, U>(true, leftVal, default);
+        }
+
+        #endregion
+
+        #region Monadic convenience
+
+        public Either<U, R> MapLeft<U>(Func<L, U> mapLeft)
+            => this.MapLeft<ValFnMap<L, U>, U>(mapLeft.ToFnMap());
+
+        public Either<L, U> MapRight<U>(Func<R, U> mapRight)
+            => this.MapRight<ValFnMap<R, U>, U>(mapRight.ToFnMap());
+
+        #endregion
+
+        #region Misc convenience
+
+        public bool IsLeft([NotNullWhen(true)] out L val)
+            => this.TryLeft(out val, out _);
+
+        public bool IsRight([NotNullWhen(true)] out R val)
+            => this.TryRight(out val, out _);
+
+        public bool HasLeft([NotNullWhen(true)] out L left)
+            => this.IsLeft(out left);
+
+        public bool HasRight([NotNullWhen(true)] out R right)
+            => this.IsRight(out right);
+
+        #endregion
     }
 
 #pragma warning restore CS8601 // Possible null reference assignment.

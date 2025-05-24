@@ -28,7 +28,7 @@ namespace NsAnyLR
             => new BuildErr<E>(err);
     }
 
-    public readonly struct Result<T, E> : IAnyLeftOrRight<T, E>
+    public readonly struct Result<T, E> : IMaybe<T, E>, IMaybe<T>
     {
         private readonly Either<T, E> either_;
 
@@ -50,6 +50,9 @@ namespace NsAnyLR
         public static implicit operator Result<T, E>(Either<T, E> either)
             => new(either);
 
+        public static implicit operator Either<T, E>(Result<T, E> result)
+            => result.either_;
+
         public bool TryOk([NotNullWhen(true)] out T ok, [NotNullWhen(false)] out E err)
             => this.either_.TryLeft(out ok, out err);
 
@@ -68,17 +71,23 @@ namespace NsAnyLR
             return this.either_.MapRight<M, U>(in mapErr);
         }
 
+        public Result<U, E> MapOk<U>(Func<T, U> mapOk)
+            => this.MapOk<ValFnMap<T, U>, U>(new(mapOk));
+
+        public Result<T, U> MapErr<U>(Func<E, U> mapErr)
+            => this.MapErr<ValFnMap<E, U>, U>(new(mapErr));
+
         public bool IsOk([NotNullWhen(true)] out T ok)
-            => this.TryOk(out ok, out _);
+            => this.either_.IsLeft(out ok);
 
         public bool IsOk()
-            => this.IsOk(out _);
+            => this.either_.IsLeft();
 
         public bool IsErr([NotNullWhen(true)] out E err)
-        => this.TryErr(out err, out _);
+            => this.either_.IsRight(out err);
 
         public bool IsErr()
-            => this.IsErr(out _);
+            => this.either_.IsRight();
 
         public Option<T> AsOk()
             => this.either_.AsLeft();
@@ -86,7 +95,19 @@ namespace NsAnyLR
         public Option<E> AsErr()
             => this.either_.AsRight();
 
-        bool IAnyLeftOrRight<T, E>.TryLeft([NotNullWhen(true)] out T leftVal, [NotNullWhen(false)] out E rightVal)
-            => this.TryOk(out leftVal, out rightVal);
+        public bool Matches([NotNullWhen(true)] out T t)
+            => this.IsOk(out t);
+
+        Option<T> IAnyLR<T, E>.AsLeft()
+            => this.either_.AsLeft();
+
+        Option<E> IAnyLR<T, E>.AsRight()
+            => this.either_.AsRight();
+
+        public Result<T, E> TryLeft()
+            => this;
+
+        public Result<E, T> TryRight()
+            => this.either_.TryRight();
     }
 }

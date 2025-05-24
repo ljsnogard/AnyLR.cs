@@ -2,12 +2,12 @@ namespace NsAnyLR.NsNUnit.NsTests;
 
 public class ResultTests
 {
+    const int LEFT = 1;
+    const int RIGHT = 2;
+
     [Test]
     public void EitherWithSameLeftAndRightShouldDiffer()
     {
-        const int LEFT = 1;
-        const int RIGHT = 2;
-
         Either<int, int> el, er;
         el = Either.Left(LEFT);
         er = Either.Right(RIGHT);
@@ -18,5 +18,31 @@ public class ResultTests
             er.IsRight(out var r) && r == RIGHT,
             "Instance of `Either` created by `Either.Right` should return true on IsRight()"
         );
+    }
+
+    [Test]
+    public void EitherTryShouldConformToItsState()
+    {
+        Either<int, int> el, er;
+        el = Either.Left(LEFT);
+        er = Either.Right(RIGHT);
+
+        Assert.That(el.TryLeft().IsOk());
+        Assert.That(el.TryRight().IsErr());
+
+        Assert.That(er.TryRight().IsOk());
+        Assert.That(er.TryLeft().IsErr());
+    }
+
+    [Test]
+    public void EitherMappingShouldWork()
+    {
+        Either<int, int> el, er;
+        el = Either.Left(LEFT);
+        er = Either.Right(RIGHT);
+
+        var sqr = (int x) => x * x;
+        Assert.That(el.MapLeft(sqr).IsLeft(out var lv) && lv == sqr(LEFT));
+        Assert.That(er.MapRight(sqr).IsRight(out var rv) && rv == sqr(RIGHT));
     }
 }

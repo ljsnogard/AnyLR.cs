@@ -9,12 +9,22 @@
 
   <PropertyGroup>
     <PackageId>AnyLR</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <PackageTags>Discriminated union</PackageTags>
     <Description>This libraray provides discriminated union implementaions list Option, Result, Either</Description>
     <RepositoryUrl>https://github.com/ljsnogard/AnyLR.cs</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <Authors>lino</Authors>
+
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE-APACHE</PackageLicenseFile>
+    <PackageLicenseFile>LICENSE-MIT</PackageLicenseFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+    <None Include="..\..\LICENSE-APACHE" Pack="true" PackagePath=""/>
+    <None Include="..\..\LICENSE-MIT" Pack="true" PackagePath=""/>
+  </ItemGroup>
 
 </Project>

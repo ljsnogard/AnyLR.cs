@@ -1,5 +1,7 @@
 namespace NsAnyLR
 {
+    using System;
+
     /// <summary>
     /// Mapping object of type T to type U
     /// </summary>
@@ -46,5 +48,27 @@ namespace NsAnyLR
 
         public static implicit operator ValFnGen<T>(System.Func<T> genFn)
             => new ValFnGen<T>(genFn);
+    }
+
+    public static class FnExt
+    {
+        public static Func<T, Option.NonExisting> ToFunc<T>(this Action<T> f)
+        {
+            Option.NonExisting TakeAction(T t)
+            {
+                f(t);
+                return new();
+            }
+            return TakeAction;
+        }
+
+        public static ValFnMap<T, U> ToFnMap<T, U>(this Func<T, U> f)
+            => new(f);
+
+        public static ValFnMap<T, Option.NonExisting> ToFnMap<T>(this Action<T> f)
+            => new(f.ToFunc());
+
+        public static ValFnGen<T> ToFnGen<T>(this Func<T> f)
+            => new(f);
     }
 }
